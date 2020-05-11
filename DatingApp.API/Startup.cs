@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using DatingApp.API.Data;
+using DatingApp.API.Helpers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -50,10 +54,30 @@ namespace DatingApp.API
         // This method gets cal led by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                app.UseExceptionHandler(builder => {
+
+                    builder.Run( async contxt => {
+                    contxt.Response.StatusCode = (int)HttpStatusCode.InternalServerError;                            
+                    var error = contxt.Features.Get<IExceptionHandlerFeature>();
+                    if(error != null)
+                    {
+                        contxt.Response.AddApplicationError(error.Error.Message);
+                        await contxt.Response.WriteAsync(error.Error.Message);
+                    }
+                    });
+                });
+            }
+            
+            
+            
 
             //app.UseHttpsRedirection();
             
@@ -66,7 +90,7 @@ namespace DatingApp.API
 
             app.UseAuthorization();
 
-            
+             
 
             app.UseEndpoints(endpoints =>
             {
