@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
 import {JwtHelperService} from '@auth0/angular-jwt';
 import { environment } from 'src/environments/environment';
+import { User } from '../_models/user';
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +17,7 @@ export class AuthService {
 
   login(model: any) {
     return this.http.post(this.baseUrl + 'Login', model).pipe(
-      map((response: any) => {
+      map((response: any) => { 
         const user = response;
 
         if (user) {
@@ -27,9 +28,9 @@ export class AuthService {
     );
   }
 
-  register(model: any) {
-    console.log(model);
-    return this.http.post(this.baseUrl + 'register', model);
+  register(user: User) {
+    console.log(user);
+    return this.http.post(this.baseUrl + 'register', user);
   }
 
   loggedIn()

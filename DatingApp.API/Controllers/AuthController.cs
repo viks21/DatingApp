@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using DatingApp.API.Data;
 using DatingApp.API.Dtos;
 using DatingApp.API.Models;
@@ -20,8 +21,10 @@ namespace DatingApp.API.Controllers
     {
         private readonly IAuthRepository _repo;
         private readonly IConfiguration _config;
-        public AuthController(IAuthRepository repository, IConfiguration config)
+        private readonly IMapper _mapper;
+        public AuthController(IAuthRepository repository, IConfiguration config, IMapper mapper)
         {
+            _mapper = mapper;
             _config = config;
             _repo = repository;
 
@@ -36,13 +39,12 @@ namespace DatingApp.API.Controllers
             if (await _repo.UserExists(userForRegisterDto.UserName))
                 return BadRequest("User already exists");
 
-            var userToCreate = new User
-            {
-                UserName = userForRegisterDto.UserName
-            };
+            var userToCreate = _mapper.Map<User>(userForRegisterDto);
             var createdUser = await _repo.Register(userToCreate, userForRegisterDto.Password);
 
-            return StatusCode(201);
+            var userToReturn = _mapper.Map<UserDetailDto>(createdUser);
+
+            return CreatedAtRoute("GetUser" , new { Controller = "User" , id = createdUser.Id } , userToReturn);
 
 
         }
@@ -51,9 +53,9 @@ namespace DatingApp.API.Controllers
         [HttpPost("Login")]
 
         public async Task<IActionResult> Login(UserForLoginto userForLoginto)
-        {   
+        {
 
-               // throw new Exception("no no ..!!");
+            // throw new Exception("no no ..!!");
 
 
             var userFromRepo = await _repo.Login(userForLoginto.Username.ToLower(), userForLoginto.Password);
@@ -69,20 +71,21 @@ namespace DatingApp.API.Controllers
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config.GetSection("AppSettings:Token").Value));
 
-            var creds = new SigningCredentials(key , SecurityAlgorithms.HmacSha512Signature);
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
             var tokenDescriptor = new Microsoft.IdentityModel.Tokens.SecurityTokenDescriptor
             {
-                   Subject = new ClaimsIdentity(claims), 
-                   Expires = DateTime.Now.AddDays(1),
-                   SigningCredentials = creds 
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Now.AddDays(1),
+                SigningCredentials = creds
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            return Ok(new {
+            return Ok(new
+            {
 
                 token = tokenHandler.WriteToken(token)
             });

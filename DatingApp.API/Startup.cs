@@ -41,6 +41,7 @@ namespace DatingApp.API
 
             });
             services.AddCors();
+            services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
             services.AddAutoMapper(typeof(DatingRepository).Assembly);
             services.AddScoped<IAuthRepository , AuthRepository>();
             services.AddScoped<IDatingRepository , DatingRepository>();
@@ -55,6 +56,7 @@ namespace DatingApp.API
                 ValidateAudience = false
             };
             });
+            services.AddScoped<LogUserActivity>();
         }
 
         // This method gets cal led by the runtime. Use this method to configure the HTTP request pipeline.

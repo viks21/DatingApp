@@ -1,8 +1,9 @@
 import { BrowserModule, HammerGestureConfig, HAMMER_GESTURE_CONFIG } from '@angular/platform-browser';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import {HttpClientModule} from '@angular/common/http';
-import {FormsModule} from '@angular/forms';
-import { BsDropdownModule, TabsModule } from 'ngx-bootstrap';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import { BsDropdownModule, TabsModule, BsDatepickerModule } from 'ngx-bootstrap';
 import { NgxGalleryModule } from 'ngx-gallery';
 
 import { RouterModule } from '@angular/router';
@@ -22,11 +23,13 @@ import { apppRoutes } from './routes';
 import { MemberDetailComponent } from './members/member-detail/member-detail.component';
 import { MemberDetailResolver } from './_resolver/member-detail.resolver';
 import { MemberListResolver } from './_resolver/member-list.resolver';
+import { MemberEditComponent } from './members/member-edit/member-edit.component';
+import { MemberEditResolver } from './_resolver/member-edit.resolver';
+import { PreventUnsavedChanges } from './_gaurds/prevent-unsaved-changes.gaurd';
 
 
 
-export function tokenGetter()
-{
+export function tokenGetter() {
 
    return localStorage.getItem('token');
 }
@@ -48,22 +51,26 @@ export class CustomHammerConfig extends HammerGestureConfig  {
       ListsComponent,
       MesssagesComponent,
       MemberCardComponent,
-      MemberDetailComponent
+      MemberDetailComponent,
+      MemberEditComponent
    ],
    imports: [
       BrowserModule,
+      BrowserAnimationsModule,
       HttpClientModule,
       FormsModule,
+      ReactiveFormsModule,
       BsDropdownModule.forRoot(),
+      BsDatepickerModule.forRoot(),
       TabsModule.forRoot(),
       NgxGalleryModule,
       RouterModule.forRoot(apppRoutes),
       JwtModule.forRoot({
 
          config: {
-            tokenGetter: tokenGetter,
-            whitelistedDomains:['localhost:5000'],
-            blacklistedRoutes:['localhost:5000/api/auth']
+            tokenGetter,
+            whitelistedDomains: ['localhost:5000'],
+            blacklistedRoutes: ['localhost:5000/api/auth']
          }
       })
    ],
@@ -72,8 +79,9 @@ export class CustomHammerConfig extends HammerGestureConfig  {
       ErrorInterceptorProvider,
       MemberDetailResolver,
       MemberListResolver,
-      { provide: HAMMER_GESTURE_CONFIG, useClass: CustomHammerConfig }
-      
+      MemberEditResolver,
+      { provide: HAMMER_GESTURE_CONFIG, useClass: CustomHammerConfig },
+      PreventUnsavedChanges
    ],
    bootstrap: [
       AppComponent
